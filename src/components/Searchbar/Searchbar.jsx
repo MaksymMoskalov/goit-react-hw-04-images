@@ -1,41 +1,37 @@
 import css from './SearchBar.module.css';
-import { Component } from 'react';
+import { useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 
-export class Searchbar extends Component {
-  state = {
-    curentKeyWord: '',
+export function Searchbar({ onSubmit }) {
+  const [curentKeyWord, setCurentKeyWord] = useState('');
+
+  const onInputChange = event => {
+    setCurentKeyWord(event.target.value);
   };
 
-  onInputChange = event => {
-    this.setState({ curentKeyWord: event.target.value });
-  };
-
-  onFormSubmit = event => {
+  const onFormSubmit = event => {
     event.preventDefault();
 
-    this.props.onSubmit(this.state.curentKeyWord);
-    this.setState({ curentKeyWord: '' });
+    onSubmit(curentKeyWord);
+    setCurentKeyWord('');
   };
-  render() {
-    return (
-      <header className={css.Searchbar}>
-        <form className={css.SearchForm} onSubmit={this.onFormSubmit}>
-          <button type="submit" className={css.SearchForm_button}>
-            <FiSearch size="16px" />
-          </button>
+  return (
+    <header className={css.Searchbar}>
+      <form className={css.SearchForm} onSubmit={onFormSubmit}>
+        <button type="submit" className={css.SearchForm_button}>
+          <FiSearch size="16px" />
+        </button>
 
-          <input
-            className={css.SearchForm_input}
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            value={this.state.curentKeyWord}
-            onChange={this.onInputChange}
-          />
-        </form>
-      </header>
-    );
-  }
+        <input
+          className={css.SearchForm_input}
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          value={curentKeyWord}
+          onChange={onInputChange}
+        />
+      </form>
+    </header>
+  );
 }

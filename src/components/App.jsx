@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { getImages } from './service/imagesAPI';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -8,95 +8,81 @@ import { Blocks } from 'react-loader-spinner';
 import { Modal } from './Modal/Modal';
 import css from './App.module.css';
 
-export class App extends Component {
-  state = {
-    keyWord: '',
-    page: 1,
-    images: [],
-    total: 0,
-    error: null,
-    loader: false,
-    openModal: false,
-    modalImage: '',
-  };
+export function App() {
+  const [keyWord, setKeyWord] = useState('');
+  const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [error, setError] = useState(null);
+  const [loader, setLoader] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [modalImage, setModalImage] = useState('');
 
-  componentDidUpdate(prevProps, prevState) {
-    const { keyWord, page } = this.state;
-    if (prevState.keyWord !== keyWord || prevState.page !== page) {
-      this.setState({ loader: true });
-      this.fetchImages(keyWord, page);
+  useEffect(() => {
+    if (!keyWord) {
+      return;
     }
-  }
+    setLoader(true);
+    fetchImages(keyWord, page);
+  }, [keyWord, page]);
 
-  hendlSubmiForm = text => {
-    this.setState({ keyWord: text, page: 1, images: [], total: 0 });
+  const hendlSubmiForm = text => {
+    setKeyWord(text);
+    setPage(1);
+    setImages([]);
+    setTotal(0);
   };
 
-  fetchImages = async (keyWord, page) => {
+  const fetchImages = async (keyWord, page) => {
     try {
       const { total, hits } = await getImages(keyWord, page);
-      this.setState(prevState => ({
-        images: [...prevState.images, ...hits],
-        total: total,
-      }));
+      setImages(prevState => [...prevState, ...hits]);
+      setTotal(total);
     } catch (error) {
-      this.setState({ error: error.message });
+      setError(error.message);
       console.log('error: ', error);
     }
-    this.setState({ loader: false });
+    setLoader(false);
   };
 
-  onLoadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const onLoadMore = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  toglModal = largeImage => {
-    this.setState(({ openModal }) => ({
-      openModal: !openModal,
-      modalImage: largeImage,
-    }));
+  const toglModal = largeImage => {
+    setModalImage(largeImage);
+    setOpenModal(!openModal);
   };
 
-  render() {
-    return (
-      <>
-        <div className={css.App}>
-          <Searchbar onSubmit={this.hendlSubmiForm} />
-          <ImageGallery>
-            {this.state.images.map(
-              ({ id, webformatURL, largeImageURL, tags }) => {
-                return (
-                  <ImageGalleryItem
-                    key={id}
-                    preview={webformatURL}
-                    largeImage={largeImageURL}
-                    tag={tags}
-                    tgModal={this.toglModal}
-                  />
-                );
-              }
-            )}
-          </ImageGallery>
-          {this.state.images.length < this.state.total && (
-            <Button addPhotos={this.onLoadMore} />
-          )}
-        </div>
-        {this.state.loader && (
-          <Blocks
-            wrapperClassName={css.Loader}
-            visible={true}
-            height="80"
-            width="80"
-            ariaLabel="blocks-loading"
-          />
-        )}
-        {this.state.openModal && (
-          <Modal
-            modalImage={this.state.modalImage}
-            closeModal={this.toglModal}
-          />
-        )}
-      </>
-    );
-  }
+  return (
+    <>
+      <div className={css.App}>
+        <Searchbar onSubmit={hendlSubmiForm} />
+        <ImageGallery>
+          {images.map(({ id, webformatURL, largeImageURL, tags }) => {
+            return (
+              <ImageGalleryItem
+                key={id}
+                preview={webformatURL}
+                largeImage={largeImageURL}
+                tag={tags}
+                tgModal={toglModal}
+              />
+            );
+          })}
+        </ImageGallery>
+        {images.length < total && <Button addPhotos={onLoadMore} />}
+      </div>
+      {loader && (
+        <Blocks
+          wrapperClassName={css.Loader}
+          visible={true}
+          height="80"
+          width="80"
+          ariaLabel="blocks-loading"
+        />
+      )}
+      {openModal && <Modal modalImage={modalImage} closeModal={toglModal} />}
+    </>
+  );
 }

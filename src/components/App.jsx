@@ -13,7 +13,6 @@ export function App() {
   const [page, setPage] = useState(1);
   const [images, setImages] = useState([]);
   const [total, setTotal] = useState(0);
-  const [error, setError] = useState(null);
   const [loader, setLoader] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [modalImage, setModalImage] = useState('');
@@ -39,7 +38,6 @@ export function App() {
       setImages(prevState => [...prevState, ...hits]);
       setTotal(total);
     } catch (error) {
-      setError(error.message);
       console.log('error: ', error);
     }
     setLoader(false);
